@@ -1,6 +1,7 @@
 import { Response } from "express";
-import { ZodError, ZodIssue } from "zod";
+import { ZodError } from "zod";
 import mongoose from "mongoose";
+
 import logger from "./logger";
 import { HTTP_STATUS_CODES } from "../constants/status.constant";
 
@@ -18,31 +19,26 @@ export function handleControllerError(
 ): void {
   const logPrefix = context ? `[${context}]` : "[ErrorHandler]";
 
-  // ✅ Zod validation error
-  //   if (isZodError(error)) {
-  //   const errors: Record<string, string> = Object.fromEntries(
-  //     (error.errors as ZodIssue[]).map((issue) => [
-  //       issue.path.join("."),
-  //       issue.message,
-  //     ])
-  //   );
+  // ✅ Zod error
+  if (error instanceof ZodError) {
+    const errors = Object.fromEntries(
+      error.errors.map((e) => [e.path.join("."), e.message])
+    );
 
-  //   logger.warn(`${logPrefix} Zod validation failed`, { errors });
+    logger.warn(`${logPrefix} Zod validation failed`, { errors });
 
-  //   res.status(HTTP_STATUS_CODES.BAD_REQUEST).json({
-  //     success: false,
-  //     errors,
-  //   });
-  //   return;
-  // }
+    res.status(HTTP_STATUS_CODES.BAD_REQUEST).json({
+      success: false,
+      errors,
+    });
+    return;
+  }
 
   // ✅ Mongoose validation error
   if (error instanceof mongoose.Error.ValidationError) {
     const errors: Record<string, string> = {};
     for (const [field, errObj] of Object.entries(error.errors)) {
-      if (errObj instanceof mongoose.Error.ValidatorError) {
-        errors[field] = errObj.message;
-      }
+      errors[field] = (errObj as mongoose.Error.ValidatorError).message;
     }
 
     logger.warn(`${logPrefix} Mongoose validation failed`, { errors });
@@ -54,7 +50,7 @@ export function handleControllerError(
     return;
   }
 
-  // ✅ Duplicate key error (MongoDB)
+  // ✅ MongoDB duplicate key error
   if (isMongoDuplicateKeyError(error)) {
     const field = Object.keys(error.keyPattern)[0];
     const value = error.keyValue?.[field];
@@ -77,12 +73,7 @@ export function handleControllerError(
   });
 }
 
-// ✅ Type guard for ZodError (type-safe, no any)
-function isZodError(err: unknown): err is ZodError {
-  return err instanceof ZodError;
-}
-
-// ✅ Type guard for Mongo duplicate key error
+// ✅ Narrow type-check helper
 function isMongoDuplicateKeyError(err: unknown): err is MongoDuplicateError {
   return (
     typeof err === "object" &&

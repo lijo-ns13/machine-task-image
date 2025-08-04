@@ -9,6 +9,7 @@ export interface IUser extends Document {
   phoneNumber: number;
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>(
@@ -56,4 +57,10 @@ userSchema.pre("save", async function (next) {
     next(error as Error);
   }
 });
+// 🔐 Compare password method
+userSchema.methods.comparePassword = async function (
+  candidatePassword: string
+): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 export default mongoose.model<IUser>("User", userSchema);
