@@ -7,4 +7,5 @@ export const TYPES = {
   ImageService: Symbol.for("ImageService"),
   ImageRepository: Symbol.for("ImageRepository"),
   MediaService: Symbol.for("MediaService"),
+  UserImageListRepository: Symbol.for("UserImageListRepository"),
 };

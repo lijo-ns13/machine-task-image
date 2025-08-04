@@ -2,4 +2,10 @@ import { CreateImageInput, ImageDTO } from "../../dtos/image.schema";
 
 export interface IImageService {
   createImage(data: CreateImageInput): Promise<ImageDTO>;
+  getImagesInUserOrderPaginated(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<{ images: ImageDTO[]; total: number }>;
+  updateImageOrder(userId: string, imageIds: string[]): Promise<void>;
 }

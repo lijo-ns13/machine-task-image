@@ -53,4 +53,57 @@ export class ImageController implements IImageController {
       handleControllerError(error, res, "create-image");
     }
   }
+  // updaetd
+  async getUserImages(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.params.userId;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const { images, total } =
+        await this.imageService.getImagesInUserOrderPaginated(
+          userId,
+          page,
+          limit
+        );
+
+      res.status(200).json({
+        success: true,
+        message: "Images fetched in user order",
+        data: {
+          images,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+          },
+        },
+      });
+    } catch (error) {
+      handleControllerError(error, res, "get-user-images");
+    }
+  }
+
+  async updateUserImageOrder(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId, imageIds } = req.body;
+
+      if (!Array.isArray(imageIds) || !userId) {
+        res.status(400).json({
+          success: false,
+          message: "userId and imageIds[] are required",
+        });
+      }
+
+      await this.imageService.updateImageOrder(userId, imageIds);
+
+      res.status(200).json({
+        success: true,
+        message: "Image order updated",
+      });
+    } catch (error) {
+      handleControllerError(error, res, "update-image-order");
+    }
+  }
 }

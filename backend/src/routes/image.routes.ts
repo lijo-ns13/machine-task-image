@@ -20,4 +20,13 @@ router.post(
   uploadMedia,
   imageController.createImage.bind(imageController)
 );
+router.get(
+  "/image/user/:userId",
+  imageController.getUserImages.bind(imageController)
+);
+router.put(
+  "/image/order",
+  imageController.updateUserImageOrder.bind(imageController)
+);
+
 export default router;

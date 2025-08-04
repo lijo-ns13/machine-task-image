@@ -16,6 +16,8 @@ import { ImageRepository } from "../repositories/image.repository";
 import { ImageController } from "../controllers/image.controller";
 import { IMediaService } from "../interfaces/services/IMediaService";
 import { MediaService } from "../services/media.service";
+import { IUserImageListRepository } from "../interfaces/repositories/IUserImageList.repository";
+import { UserImageListRepository } from "../repositories/userimage.repository";
 
 const container = new Container();
 
@@ -28,4 +30,5 @@ container.bind<IImageController>(TYPES.ImageController).to(ImageController);
 container.bind<IImageService>(TYPES.ImageService).to(ImageService);
 container.bind<IImageRepository>(TYPES.ImageRepository).to(ImageRepository);
 container.bind<IMediaService>(TYPES.MediaService).to(MediaService);
+container.bind<IUserImageListRepository>(TYPES.UserImageListRepository).to(UserImageListRepository)
 export default container;

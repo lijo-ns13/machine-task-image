@@ -1,7 +1,12 @@
-import { Types } from "mongoose";
+import { IImage } from "../../models/image.model";
 
 export interface IUserImageListRepository {
-  getOrCreateList(userId: Types.ObjectId): Promise<Types.ObjectId[]>;
-  updateList(userId: Types.ObjectId, imageIds: string[]): Promise<void>;
-  addImage(userId: Types.ObjectId, imageId: Types.ObjectId): Promise<void>;
+  getImagesInOrderPaginated(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<{ images: IImage[]; total: number }>;
+  addImageToUserList(userId: string, imageId: string): Promise<void>;
+  // getImagesInOrder(userId: string): Promise<IImage[]>;
+  updateImageOrder(userId: string, imageIds: string[]): Promise<void>;
 }

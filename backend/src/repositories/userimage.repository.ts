@@ -1,34 +1,63 @@
-// import { IUserImageListRepository } from "../interfaces/repositories/IUserImageList.repository";
-// import UserImageListModel from "../models/userImageList.model";
+import { injectable } from "inversify";
+import { Types } from "mongoose";
+import UserImageListModel, {
+  IUserImageList,
+} from "../models/userImageList.model";
+import ImageModel, { IImage } from "../models/image.model";
+import { IUserImageListRepository } from "../interfaces/repositories/IUserImageList.repository";
 
-// import { Types } from "mongoose";
+@injectable()
+export class UserImageListRepository implements IUserImageListRepository {
+  async addImageToUserList(userId: string, imageId: string): Promise<void> {
+    await UserImageListModel.findOneAndUpdate(
+      { userId: new Types.ObjectId(userId) },
+      { $push: { imageIds: new Types.ObjectId(imageId) } },
+      { upsert: true, new: true }
+    );
+  }
 
-// export class UserImageListRepository implements IUserImageListRepository {
-//   async getOrCreateList(userId: Types.ObjectId): Promise<Types.ObjectId[]> {
-//     let list = await UserImageListModel.findOne({ userId }).lean();
-//     if (!list) {
-//       list = await UserImageListModel.create({ userId, imageIds: [] });
-//     }
-//     return list.imageIds;
-//   }
+  async getImagesInOrderPaginated(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<{ images: IImage[]; total: number }> {
+    const imageList = await UserImageListModel.findOne({
+      userId: new Types.ObjectId(userId),
+    });
 
-//   async updateList(userId: Types.ObjectId, imageIds: string[]): Promise<void> {
-//     const objectIds = imageIds.map((id) => new Types.ObjectId(id));
-//     await UserImageListModel.findOneAndUpdate(
-//       { userId },
-//       { imageIds: objectIds },
-//       { upsert: true }
-//     );
-//   }
+    if (!imageList || imageList.imageIds.length === 0) {
+      return { images: [], total: 0 };
+    }
 
-//   async addImage(
-//     userId: Types.ObjectId,
-//     imageId: Types.ObjectId
-//   ): Promise<void> {
-//     await UserImageListModel.findOneAndUpdate(
-//       { userId },
-//       { $push: { imageIds: imageId } },
-//       { upsert: true }
-//     );
-//   }
-// }
+    const total = imageList.imageIds.length;
+    const startIndex = (page - 1) * limit;
+    const paginatedIds = imageList.imageIds.slice(
+      startIndex,
+      startIndex + limit
+    );
+
+    const images = await ImageModel.find({
+      _id: { $in: paginatedIds },
+    });
+
+    // Maintain custom order
+    const imageMap = new Map(images.map((img) => [img._id.toString(), img]));
+    const ordered = paginatedIds
+      .map((id) => imageMap.get(id.toString()))
+      .filter(Boolean) as IImage[];
+
+    return { images: ordered, total };
+  }
+
+  async updateImageOrder(userId: string, imageIds: string[]): Promise<void> {
+    await UserImageListModel.findOneAndUpdate(
+      { userId: new Types.ObjectId(userId) },
+      {
+        $set: {
+          imageIds: imageIds.map((id) => new Types.ObjectId(id)),
+        },
+      },
+      { new: true, upsert: true }
+    );
+  }
+}
