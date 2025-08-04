@@ -1,0 +1,56 @@
+import { injectable, inject } from "inversify";
+import { Request, Response } from "express";
+import { createImageSchema } from "../dtos/image.schema";
+import { handleControllerError } from "../utils/errorHandler";
+import { HTTP_STATUS_CODES } from "../constants/status.constant";
+import { IImageController } from "../interfaces/controllers/IImageController";
+import { TYPES } from "../di/types";
+import { IImageService } from "../interfaces/services/IImageService";
+import { IMediaService } from "../interfaces/services/IMediaService";
+
+@injectable()
+export class ImageController implements IImageController {
+  constructor(
+    @inject(TYPES.ImageService) private imageService: IImageService,
+    @inject(TYPES.MediaService) private mediaService: IMediaService
+  ) {
+    console.log("🧪 AWS ENV CHECK", {
+      AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+      AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+      AWS_REGION: process.env.AWS_REGION,
+      S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
+    });
+  }
+
+  async createImage(req: Request, res: Response): Promise<void> {
+    console.log("mediaserv", this.mediaService);
+    try {
+      const { title, userId } = req.body;
+
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: "Media file is required",
+        });
+        return;
+      }
+
+      // Upload to S3 and get back the s3key
+      const s3key = await this.mediaService.uploadSingleMedia(req.file);
+      console.log("s3key", s3key);
+      // Validate input with Zod (including s3key)
+      const parsed = createImageSchema.parse({ title, userId, s3key });
+
+      // Save to DB
+      const imageDTO = await this.imageService.createImage(parsed);
+
+      res.status(HTTP_STATUS_CODES.CREATED).json({
+        success: true,
+        message: "Successfully created image",
+        data: imageDTO,
+      });
+    } catch (error) {
+      handleControllerError(error, res, "create-image");
+    }
+  }
+}

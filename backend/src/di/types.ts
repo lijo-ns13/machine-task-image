@@ -3,4 +3,8 @@ export const TYPES = {
   AuthService: Symbol.for("AuthService"),
   AuthController: Symbol.for("AuthController"),
   UserRepository: Symbol.for("UserRepository"),
+  ImageController: Symbol.for("ImageController"),
+  ImageService: Symbol.for("ImageService"),
+  ImageRepository: Symbol.for("ImageRepository"),
+  MediaService: Symbol.for("MediaService"),
 };
