@@ -3,6 +3,7 @@ import SignInPage from "../pages/SignInPage";
 import SignUpPage from "../pages/SignUpPage";
 import Protected from "./Protected";
 import HomePage from "../pages/HomePage";
+import LandPage from "../pages/LandPage";
 
 const UserRoutes = () => {
   return (
@@ -11,7 +12,7 @@ const UserRoutes = () => {
 
       <Route path="signin" element={<SignInPage />} />
       <Route path="signup" element={<SignUpPage />} />
-
+      <Route path="" element={<LandPage />} />
       <Route
         path="home"
         element={

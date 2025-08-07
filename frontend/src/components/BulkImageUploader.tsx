@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
+import type { ImageDTO } from "../services/imgService";
 
 interface Props {
   files: File[];
   userId: string;
   onClose: () => void;
+  onUploaded: (newImage: ImageDTO) => void;
 }
 
 interface ImageWithTitle {
@@ -12,7 +14,12 @@ interface ImageWithTitle {
   title: string;
 }
 
-const BulkImageUploader: React.FC<Props> = ({ files, userId, onClose }) => {
+const BulkImageUploader: React.FC<Props> = ({
+  files,
+  userId,
+  onClose,
+  onUploaded,
+}) => {
   const [images, setImages] = useState<ImageWithTitle[]>(
     files.map((file) => ({ file, title: "" }))
   );
@@ -47,9 +54,15 @@ const BulkImageUploader: React.FC<Props> = ({ files, userId, onClose }) => {
       formData.append("userId", userId);
 
       try {
-        await axios.post(`http://localhost:5000/api/image`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        const res = await axios.post(
+          `http://localhost:5000/api/image`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        const newImage: ImageDTO = res.data.data;
+        onUploaded(newImage);
         setSuccess((prev) => [...prev, `${img.title} uploaded successfully`]);
       } catch (err: any) {
         setErrors((prev) => [

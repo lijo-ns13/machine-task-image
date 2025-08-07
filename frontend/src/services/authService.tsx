@@ -10,7 +10,7 @@ export const SignInUser = async (email: string, password: string) => {
         withCredentials: true,
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log("eroro", error);
     throw handleApiError(error, "authsignin");

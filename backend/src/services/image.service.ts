@@ -22,10 +22,10 @@ export class ImageService implements IImageService {
 
   async createImage(data: CreateImageInput): Promise<ImageDTO> {
     const image = await this.imageRepository.createImage(data);
-    await this.userImageListRepository.addImageToUserList(
-      data.userId,
-      image._id.toString()
-    );
+    // await this.userImageListRepository.addImageToUserList(
+    //   data.userId,
+    //   image._id.toString()
+    // );
     return ImageMapper.toDTO(image, this.mediaService);
   }
   async getImagesInUserOrderPaginated(

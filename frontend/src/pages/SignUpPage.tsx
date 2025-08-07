@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { SignUpUser } from "../services/authService";
 import { toast } from "react-toastify";
+import { Link, useNavigate } from "react-router-dom";
 
 const SignUpPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     phoneNumber: "",
@@ -25,7 +27,7 @@ const SignUpPage = () => {
     try {
       const res = SignUpUser(formData);
       toast.success("signup successfully");
-      console.log("resy", res);
+      navigate("/login");
     } catch (error) {
       console.log("error", error);
       toast.error("error occured");
@@ -93,6 +95,17 @@ const SignUpPage = () => {
         >
           Sign Up
         </button>
+        <div className="text-center">
+          <span className="text-sm text-gray-600">
+            Signin to existing account{" "}
+          </span>
+          <Link
+            to="/signin"
+            className="text-sm text-blue-600 font-medium hover:underline"
+          >
+            Sign In
+          </Link>
+        </div>
       </form>
     </div>
   );
