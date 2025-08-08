@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
+
 import type { ImageDTO } from "../services/imgService";
+import userAxios from "../types/axios";
 
 interface Props {
   files: File[];
@@ -54,7 +55,7 @@ const BulkImageUploader: React.FC<Props> = ({
       formData.append("userId", userId);
 
       try {
-        const res = await axios.post(
+        const res = await userAxios.post(
           `http://localhost:5000/api/image`,
           formData,
           {

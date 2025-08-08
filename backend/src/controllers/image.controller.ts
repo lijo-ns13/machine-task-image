@@ -106,4 +106,42 @@ export class ImageController implements IImageController {
       handleControllerError(error, res, "update-image-order");
     }
   }
+  async updateImage(req: Request, res: Response): Promise<void> {
+    try {
+      const imageId = req.params.imageId;
+      const { title } = req.body;
+
+      if (!title || typeof title !== "string") {
+        res.status(400).json({
+          success: false,
+          message: "Valid title is required",
+        });
+        return;
+      }
+
+      const updated = await this.imageService.updateImage(imageId, { title });
+
+      res.status(200).json({
+        success: true,
+        message: "Image updated successfully",
+        data: updated,
+      });
+    } catch (error) {
+      handleControllerError(error, res, "update-image");
+    }
+  }
+  async deleteImage(req: Request, res: Response): Promise<void> {
+    try {
+      const imageId = req.params.imageId;
+
+      await this.imageService.deleteImage(imageId);
+
+      res.status(200).json({
+        success: true,
+        message: "Image deleted successfully",
+      });
+    } catch (error) {
+      handleControllerError(error, res, "delete-image");
+    }
+  }
 }

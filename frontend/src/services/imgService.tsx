@@ -1,4 +1,3 @@
-import axios from "axios";
 import { handleApiError } from "../types/apiError";
 export interface ImageDTO {
   id: string;
@@ -17,11 +16,12 @@ export interface ImagePaginationResponse {
     totalPages: number;
   };
 }
+import userAxios from "../types/axios";
 const BASE_URL = "http://localhost:5000/api";
 
 export const createImage = async (formData: FormData): Promise<ImageDTO> => {
   try {
-    const response = await axios.post(`${BASE_URL}/image`, formData, {
+    const response = await userAxios.post(`${BASE_URL}/image`, formData, {
       withCredentials: true,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -40,7 +40,7 @@ export const getUserImages = async (
   limit = 10
 ): Promise<ImagePaginationResponse> => {
   try {
-    const response = await axios.get(`${BASE_URL}/image/user/${userId}`, {
+    const response = await userAxios.get(`${BASE_URL}/image/user/${userId}`, {
       withCredentials: true,
       params: { page, limit },
     });
@@ -56,7 +56,7 @@ export const updateImageOrder = async (
   imageIds: string[]
 ): Promise<void> => {
   try {
-    await axios.put(
+    await userAxios.put(
       `${BASE_URL}/image/order`,
       { userId, imageIds },
       { withCredentials: true }

@@ -7,7 +7,7 @@ import { HTTP_STATUS_CODES } from "../constants/status.constant";
 
 import { Request, Response } from "express";
 import { handleControllerError } from "../utils/errorHandler";
-import { ZodError, ZodIssue } from "zod";
+const isProduction = process.env.NODE_ENV === "production";
 export class AuthController implements IAuthController {
   constructor(@inject(TYPES.AuthService) private _authService: IAuthService) {}
   signup = async (req: Request, res: Response): Promise<void> => {
@@ -29,6 +29,19 @@ export class AuthController implements IAuthController {
       console.log("req.body", req.body);
       const data = signinSchema.parse(req.body);
       const result = await this._authService.signin(data);
+      res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      res.cookie("accessToken", result.accessToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
       res
         .status(HTTP_STATUS_CODES.OK)
         .json({ success: true, message: "Signin successful", data: result });

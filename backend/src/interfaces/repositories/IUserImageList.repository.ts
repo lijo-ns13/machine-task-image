@@ -9,4 +9,5 @@ export interface IUserImageListRepository {
   addImageToUserList(userId: string, imageId: string): Promise<void>;
   // getImagesInOrder(userId: string): Promise<IImage[]>;
   updateImageOrder(userId: string, imageIds: string[]): Promise<void>;
+  removeImageFromUserList(userId: string, imageId: string): Promise<void>;
 }

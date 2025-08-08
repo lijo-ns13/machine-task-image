@@ -8,4 +8,6 @@ export interface IImageService {
     limit: number
   ): Promise<{ images: ImageDTO[]; total: number }>;
   updateImageOrder(userId: string, imageIds: string[]): Promise<void>;
+  updateImage(imageId: string, data: { title: string }): Promise<ImageDTO>;
+  deleteImage(imageId: string): Promise<void>;
 }

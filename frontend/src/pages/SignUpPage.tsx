@@ -27,7 +27,7 @@ const SignUpPage = () => {
     try {
       const res = SignUpUser(formData);
       toast.success("signup successfully");
-      navigate("/login");
+      navigate("/signin");
     } catch (error) {
       console.log("error", error);
       toast.error("error occured");

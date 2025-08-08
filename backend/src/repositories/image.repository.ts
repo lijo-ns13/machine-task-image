@@ -17,4 +17,21 @@ export class ImageRepository implements IImageRepository {
 
     return image;
   }
+  async updateImage(imageId: string, data: { title: string }): Promise<IImage> {
+    const updated = await ImageModel.findByIdAndUpdate(
+      imageId,
+      { $set: data },
+      { new: true }
+    );
+    if (!updated) throw new Error("Image not found");
+    return updated;
+  }
+
+  async getImageById(imageId: string): Promise<IImage | null> {
+    return ImageModel.findById(imageId);
+  }
+
+  async deleteImage(imageId: string): Promise<void> {
+    await ImageModel.findByIdAndDelete(imageId);
+  }
 }

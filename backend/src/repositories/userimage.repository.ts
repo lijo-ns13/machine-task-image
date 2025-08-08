@@ -60,4 +60,13 @@ export class UserImageListRepository implements IUserImageListRepository {
       { new: true, upsert: true }
     );
   }
+  async removeImageFromUserList(
+    userId: string,
+    imageId: string
+  ): Promise<void> {
+    await UserImageListModel.findOneAndUpdate(
+      { userId: new Types.ObjectId(userId) },
+      { $pull: { imageIds: new Types.ObjectId(imageId) } }
+    );
+  }
 }

@@ -54,4 +54,23 @@ export class ImageService implements IImageService {
 
     await this.userImageListRepository.updateImageOrder(userId, imageIds);
   }
+  async updateImage(
+    imageId: string,
+    data: { title: string }
+  ): Promise<ImageDTO> {
+    const updated = await this.imageRepository.updateImage(imageId, data);
+    return ImageMapper.toDTO(updated, this.mediaService);
+  }
+
+  async deleteImage(imageId: string): Promise<void> {
+    // Fetch image to get userId before deletion
+    const image = await this.imageRepository.getImageById(imageId);
+    if (!image) throw new Error("Image not found");
+
+    await this.imageRepository.deleteImage(imageId);
+    await this.userImageListRepository.removeImageFromUserList(
+      image.userId.toString(),
+      imageId
+    );
+  }
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
 import type { ImageDTO } from "../services/imgService";
+import userAxios from "../types/axios";
+import { toast } from "react-toastify";
 
 interface Props {
   file: File;
@@ -32,7 +33,7 @@ const SingleImageUploader: React.FC<Props> = ({
 
     try {
       setLoading(true);
-      const res = await axios.post(
+      const res = await userAxios.post(
         "http://localhost:5000/api/image",
         formData,
         {
@@ -43,6 +44,7 @@ const SingleImageUploader: React.FC<Props> = ({
       const newImage: ImageDTO = res.data.data;
       console.log("newImagedto", newImage);
       onUploaded(newImage);
+      toast.success("Image addedd successfully");
       onClose();
     } catch (err: any) {
       setError(err?.response?.data?.message || "Upload failed");
