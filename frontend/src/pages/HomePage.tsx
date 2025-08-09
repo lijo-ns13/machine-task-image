@@ -5,7 +5,9 @@ import Navbar from "../components/Navbar";
 import BulkImageUploader from "../components/BulkImageUploader";
 import SingleImageUploader from "../components/SingleImageUploader";
 import {
+  deleteImage,
   getUserImages,
+  updateImage,
   updateImageOrder,
   type ImageDTO,
 } from "../services/imgService";
@@ -23,51 +25,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
-function SortableImage({ image }: { image: ImageDTO }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: image.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    touchAction: "manipulation", // Prevents scrolling during drag
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      className="border p-4 rounded shadow mb-4 flex items-center gap-6 bg-white cursor-grab"
-    >
-      <div {...listeners} className="cursor-grab">
-        {/* Drag handle */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 text-gray-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 10h16M4 14h16"
-          />
-        </svg>
-      </div>
-
-      <img
-        src={image.s3key}
-        alt={image.title}
-        className="w-32 h-32 object-cover rounded-lg border"
-      />
-      <span className="font-medium text-lg text-gray-800">{image.title}</span>
-    </div>
-  );
-}
+import { toast } from "react-toastify";
 
 function HomePage() {
   const navigate = useNavigate();
@@ -80,6 +38,8 @@ function HomePage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [editingImage, setEditingImage] = useState<ImageDTO | null>(null);
+  const [updatedTitle, setUpdatedTitle] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) navigate("/login");
@@ -107,6 +67,35 @@ function HomePage() {
       setLoadingMore(false);
     }
   };
+  async function handleDelete(imageId: string) {
+    try {
+      await deleteImage(imageId);
+      setImages(images.filter((image: ImageDTO) => image.id != imageId));
+      toast.success("Image deleted successfully");
+    } catch {
+      toast.error("Failed to delete");
+    }
+  }
+  function handleUpdate(image: ImageDTO) {
+    setEditingImage(image);
+  }
+
+  async function saveUpdatedTitle(newTitle: string) {
+    if (!editingImage) return;
+
+    try {
+      const updatedImage = await updateImage(editingImage.id, newTitle);
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === editingImage.id ? { ...img, title: newTitle } : img
+        )
+      );
+      toast.success("Image updated successfully");
+      setEditingImage(null);
+    } catch {
+      toast.error("Failed to update image");
+    }
+  }
 
   // Initial load
   useEffect(() => {
@@ -166,6 +155,103 @@ function HomePage() {
     await updateImageOrder(userId, newOrderIds);
     setHasChanges(false);
   };
+  function UpdateImageModal({
+    image,
+    onClose,
+    onSave,
+  }: {
+    image: ImageDTO;
+    onClose: () => void;
+    onSave: (newTitle: string) => void;
+  }) {
+    const [title, setTitle] = useState(image.title);
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+          <h2 className="text-xl font-semibold mb-4">Update Image</h2>
+          <img
+            src={image.s3key}
+            alt={image.title}
+            className="w-full h-64 object-cover rounded mb-4"
+          />
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="border rounded px-3 py-2 w-full mb-4"
+            placeholder="Enter new title"
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onSave(title)}
+              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function SortableImage({ image }: { image: ImageDTO }) {
+    const { attributes, listeners, setNodeRef, transform, transition } =
+      useSortable({ id: image.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      touchAction: "manipulation", // Prevents scrolling during drag
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        className="border p-4 rounded shadow mb-4 flex items-center gap-6 bg-white cursor-grab"
+      >
+        <div {...listeners} className="cursor-grab">
+          {/* Drag handle */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-gray-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 10h16M4 14h16"
+            />
+          </svg>
+        </div>
+
+        <img
+          src={image.s3key}
+          alt={image.title}
+          className="w-32 h-32 object-cover rounded-lg border"
+        />
+        <span className="font-medium text-lg text-gray-800">{image.title}</span>
+        <button onClick={() => handleDelete(image.id)}>delete</button>
+        <button
+          onClick={() => handleUpdate(image)}
+          className="px-3 py-1 bg-yellow-500 text-white rounded"
+        >
+          Update
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -251,6 +337,13 @@ function HomePage() {
           </div>
         )}
       </div>
+      {editingImage && (
+        <UpdateImageModal
+          image={editingImage}
+          onClose={() => setEditingImage(null)}
+          onSave={saveUpdatedTitle}
+        />
+      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { title } from "process";
 import { handleApiError } from "../types/apiError";
 export interface ImageDTO {
   id: string;
@@ -63,5 +64,28 @@ export const updateImageOrder = async (
     );
   } catch (error) {
     throw handleApiError(error, "update-image-order");
+  }
+};
+export const updateImage = async (
+  imageId: string,
+  title: string
+): Promise<void> => {
+  try {
+    await userAxios.patch(
+      `${BASE_URL}/image/${imageId}`,
+      { title },
+      { withCredentials: true }
+    );
+  } catch (error) {
+    throw handleApiError(error, "update image");
+  }
+};
+export const deleteImage = async (imageId: string): Promise<void> => {
+  try {
+    await userAxios.delete(`${BASE_URL}/image/${imageId}`, {
+      withCredentials: true,
+    });
+  } catch (error) {
+    throw handleApiError(error, "delete image");
   }
 };

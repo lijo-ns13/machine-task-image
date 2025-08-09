@@ -30,11 +30,11 @@ router.put(
   imageController.updateUserImageOrder.bind(imageController)
 );
 router.patch(
-  "/images/:imageId",
+  "/image/:imageId",
   imageController.updateImage.bind(imageController)
 );
 router.delete(
-  "/images/:imageId",
+  "/image/:imageId",
   imageController.deleteImage.bind(imageController)
 );
 
