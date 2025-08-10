@@ -25,7 +25,7 @@ const SignUpPage = () => {
       return;
     }
     try {
-      const res = SignUpUser(formData);
+      SignUpUser(formData);
       toast.success("signup successfully");
       navigate("/signin");
     } catch (error) {

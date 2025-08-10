@@ -39,7 +39,6 @@ function HomePage() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [editingImage, setEditingImage] = useState<ImageDTO | null>(null);
-  const [updatedTitle, setUpdatedTitle] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) navigate("/login");
@@ -55,7 +54,7 @@ function HomePage() {
         id: String(img.id),
       }));
 
-      setImages((prev) => [...cleanedImages]);
+      setImages(() => [...cleanedImages]);
       // setImages((prev) => [...prev, ...res.images]);
 
       // Compute hasMore based on pagination
@@ -84,7 +83,8 @@ function HomePage() {
     if (!editingImage) return;
 
     try {
-      const updatedImage = await updateImage(editingImage.id, newTitle);
+      await updateImage(editingImage.id, newTitle);
+
       setImages((prev) =>
         prev.map((img) =>
           img.id === editingImage.id ? { ...img, title: newTitle } : img

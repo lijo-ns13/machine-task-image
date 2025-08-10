@@ -1,4 +1,3 @@
-import { title } from "process";
 import { handleApiError } from "../types/apiError";
 export interface ImageDTO {
   id: string;
