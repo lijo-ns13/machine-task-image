@@ -1,10 +1,10 @@
 import axios from "axios";
 import { handleApiError } from "../types/apiError";
-
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 export const SignInUser = async (email: string, password: string) => {
   try {
     const response = await axios.post(
-      `http://localhost:5000/api/auth/signin`,
+      `${baseUrl}/api/auth/signin`,
       { email, password },
       {
         withCredentials: true,
