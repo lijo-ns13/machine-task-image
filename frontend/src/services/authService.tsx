@@ -23,11 +23,9 @@ export const SignUpUser = async (data: {
   confirmPassword: string;
 }) => {
   try {
-    const response = await axios.post(
-      `http://localhost:5000/api/auth/signup`,
-      data,
-      { withCredentials: true }
-    );
+    const response = await axios.post(`${baseUrl}/api/auth/signup`, data, {
+      withCredentials: true,
+    });
 
     return response.data;
   } catch (error) {
