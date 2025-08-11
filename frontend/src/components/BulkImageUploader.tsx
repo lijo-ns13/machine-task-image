@@ -56,7 +56,7 @@ const BulkImageUploader: React.FC<Props> = ({
 
       try {
         const res = await userAxios.post(
-          `${import.meta.env.VITE_API_BASE_UR}/api/image`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/image`,
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },

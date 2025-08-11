@@ -17,11 +17,12 @@ export interface ImagePaginationResponse {
   };
 }
 import userAxios from "../types/axios";
-const BASE_URL = `${import.meta.env.VITE_API_BASE_UR}/api`;
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+// const BASE_URL = `${import.meta.env.VITE_API_BASE_UR}/api`;
 
 export const createImage = async (formData: FormData): Promise<ImageDTO> => {
   try {
-    const response = await userAxios.post(`${BASE_URL}/image`, formData, {
+    const response = await userAxios.post(`${baseUrl}/api/image`, formData, {
       withCredentials: true,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -40,10 +41,13 @@ export const getUserImages = async (
   limit = 10
 ): Promise<ImagePaginationResponse> => {
   try {
-    const response = await userAxios.get(`${BASE_URL}/image/user/${userId}`, {
-      withCredentials: true,
-      params: { page, limit },
-    });
+    const response = await userAxios.get(
+      `${baseUrl}/api/image/user/${userId}`,
+      {
+        withCredentials: true,
+        params: { page, limit },
+      }
+    );
 
     return response.data.data;
   } catch (error) {
@@ -57,7 +61,7 @@ export const updateImageOrder = async (
 ): Promise<void> => {
   try {
     await userAxios.put(
-      `${BASE_URL}/image/order`,
+      `${baseUrl}/api/image/order`,
       { userId, imageIds },
       { withCredentials: true }
     );
@@ -71,7 +75,7 @@ export const updateImage = async (
 ): Promise<void> => {
   try {
     await userAxios.patch(
-      `${BASE_URL}/image/${imageId}`,
+      `${baseUrl}/api/image/${imageId}`,
       { title },
       { withCredentials: true }
     );
@@ -81,7 +85,7 @@ export const updateImage = async (
 };
 export const deleteImage = async (imageId: string): Promise<void> => {
   try {
-    await userAxios.delete(`${BASE_URL}/image/${imageId}`, {
+    await userAxios.delete(`${baseUrl}/api/image/${imageId}`, {
       withCredentials: true,
     });
   } catch (error) {
