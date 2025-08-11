@@ -22,7 +22,8 @@ export class ImageService implements IImageService {
 
   async createImage(data: CreateImageInput): Promise<ImageDTO> {
     const isTitleAlreadyExists = await this.imageRepository.findByTitle(
-      data.title
+      data.title,
+      data.userId
     );
     if (!isTitleAlreadyExists) {
       throw new Error("Title already exists");
@@ -62,10 +63,12 @@ export class ImageService implements IImageService {
   }
   async updateImage(
     imageId: string,
-    data: { title: string }
+    data: { title: string },
+    userId: string
   ): Promise<ImageDTO> {
     const isTitleAlreadyExists = await this.imageRepository.findByTitle(
-      data.title
+      data.title,
+      userId
     );
     if (!isTitleAlreadyExists) {
       throw new Error("Title already exists");

@@ -71,12 +71,13 @@ export const updateImageOrder = async (
 };
 export const updateImage = async (
   imageId: string,
-  title: string
+  title: string,
+  userId: string
 ): Promise<void> => {
   try {
     await userAxios.patch(
       `${baseUrl}/api/image/${imageId}`,
-      { title },
+      { title, userId },
       { withCredentials: true }
     );
   } catch (error) {

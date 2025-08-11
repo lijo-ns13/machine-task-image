@@ -102,7 +102,7 @@ export class ImageController implements IImageController {
   async updateImage(req: Request, res: Response): Promise<void> {
     try {
       const imageId = req.params.imageId;
-      const { title } = req.body;
+      const { title, userId } = req.body;
 
       if (!title || typeof title !== "string") {
         res.status(400).json({
@@ -112,7 +112,11 @@ export class ImageController implements IImageController {
         return;
       }
 
-      const updated = await this.imageService.updateImage(imageId, { title });
+      const updated = await this.imageService.updateImage(
+        imageId,
+        { title },
+        userId
+      );
 
       res.status(200).json({
         success: true,

@@ -83,7 +83,11 @@ function HomePage() {
     if (!editingImage) return;
 
     try {
-      await updateImage(editingImage.id, newTitle);
+      if (!userId) {
+        toast.error("userid not found");
+        return;
+      }
+      await updateImage(editingImage.id, newTitle, userId);
 
       setImages((prev) =>
         prev.map((img) =>
