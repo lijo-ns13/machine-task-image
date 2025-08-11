@@ -31,20 +31,22 @@ export class AuthController implements IAuthController {
       const result = await this._authService.signin(data);
       res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? "none" : "lax",
+        secure: true,
+        sameSite: "none",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       res.cookie("accessToken", result.accessToken, {
         httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? "none" : "lax",
+        secure: true,
+        sameSite: "none",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-      res
-        .status(HTTP_STATUS_CODES.OK)
-        .json({ success: true, message: "Signin successful", data: result });
+      res.status(HTTP_STATUS_CODES.OK).json({
+        success: true,
+        message: "Signin successful",
+        data: result,
+      });
     } catch (error) {
       handleControllerError(error, res, "AuthController.signin");
     }
