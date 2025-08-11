@@ -25,7 +25,7 @@ export class ImageService implements IImageService {
       data.title,
       data.userId
     );
-    if (!isTitleAlreadyExists) {
+    if (isTitleAlreadyExists) {
       throw new Error("Title already exists");
     }
     const image = await this.imageRepository.createImage(data);
@@ -70,7 +70,7 @@ export class ImageService implements IImageService {
       data.title,
       userId
     );
-    if (!isTitleAlreadyExists) {
+    if (isTitleAlreadyExists) {
       throw new Error("Title already exists");
     }
     const updated = await this.imageRepository.updateImage(imageId, data);
