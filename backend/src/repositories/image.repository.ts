@@ -3,6 +3,7 @@ import { CreateImageInput } from "../dtos/image.schema";
 import ImageModel, { IImage } from "../models/image.model";
 import UserImageList from "../models/userImageList.model";
 import { IImageRepository } from "../interfaces/repositories/IImageRepository";
+import imageModel from "../models/image.model";
 
 @injectable()
 export class ImageRepository implements IImageRepository {
@@ -16,6 +17,10 @@ export class ImageRepository implements IImageRepository {
     );
 
     return image;
+  }
+  async findByTitle(title: string): Promise<boolean> {
+    const image = await imageModel.findOne({ title });
+    return !!image;
   }
   async updateImage(imageId: string, data: { title: string }): Promise<IImage> {
     const updated = await ImageModel.findByIdAndUpdate(

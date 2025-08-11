@@ -21,6 +21,12 @@ export class ImageService implements IImageService {
   ) {}
 
   async createImage(data: CreateImageInput): Promise<ImageDTO> {
+    const isTitleAlreadyExists = await this.imageRepository.findByTitle(
+      data.title
+    );
+    if (!isTitleAlreadyExists) {
+      throw new Error("Title already exists");
+    }
     const image = await this.imageRepository.createImage(data);
     // await this.userImageListRepository.addImageToUserList(
     //   data.userId,
@@ -58,6 +64,12 @@ export class ImageService implements IImageService {
     imageId: string,
     data: { title: string }
   ): Promise<ImageDTO> {
+    const isTitleAlreadyExists = await this.imageRepository.findByTitle(
+      data.title
+    );
+    if (!isTitleAlreadyExists) {
+      throw new Error("Title already exists");
+    }
     const updated = await this.imageRepository.updateImage(imageId, data);
     return ImageMapper.toDTO(updated, this.mediaService);
   }

@@ -6,4 +6,5 @@ export interface IImageRepository {
   updateImage(imageId: string, data: { title: string }): Promise<IImage>;
   getImageById(imageId: string): Promise<IImage | null>;
   deleteImage(imageId: string): Promise<void>;
+  findByTitle(title: string): Promise<boolean>;
 }
