@@ -47,6 +47,7 @@ const SingleImageUploader: React.FC<Props> = ({
       toast.success("Image addedd successfully");
       onClose();
     } catch (err: any) {
+      console.log("error",err);
       setError(err?.response?.data?.message || "Upload failed");
     } finally {
       setLoading(false);

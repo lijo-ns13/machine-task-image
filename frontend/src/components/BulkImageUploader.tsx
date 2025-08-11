@@ -66,6 +66,7 @@ const BulkImageUploader: React.FC<Props> = ({
         onUploaded(newImage);
         setSuccess((prev) => [...prev, `${img.title} uploaded successfully`]);
       } catch (err: any) {
+        console.log("err", err);
         setErrors((prev) => [
           ...prev,
           `${img.title} upload failed: ${
