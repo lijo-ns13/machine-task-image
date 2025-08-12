@@ -12,5 +12,5 @@ const authController = container.get<IAuthController>(TYPES.AuthController);
 // Routes
 router.post("/auth/signup", authController.signup);
 router.post("/auth/signin", authController.signin);
-
+router.post("/auth/logout", authController.logout);
 export default router;

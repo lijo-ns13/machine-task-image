@@ -32,3 +32,11 @@ export const SignUpUser = async (data: {
     throw handleApiError(error, "authsignup");
   }
 };
+export const Logout = async () => {
+  try {
+    const response = await axios.post(`${baseUrl}/api/auth/logout`);
+    return response.data;
+  } catch (error) {
+    throw handleApiError(error, "authlogut");
+  }
+};
