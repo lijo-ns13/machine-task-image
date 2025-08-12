@@ -51,4 +51,27 @@ export class AuthController implements IAuthController {
       handleControllerError(error, res, "AuthController.signin");
     }
   };
+  logout = async (req: Request, res: Response): Promise<void> => {
+    try {
+      // Clear both tokens
+      res.clearCookie("accessToken", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "lax",
+      });
+
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "lax",
+      });
+
+      res.status(HTTP_STATUS_CODES.OK).json({
+        success: true,
+        message: "Logout successful",
+      });
+    } catch (error) {
+      handleControllerError(error, res, "AuthController.logout");
+    }
+  };
 }
