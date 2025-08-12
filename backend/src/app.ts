@@ -9,7 +9,6 @@ dotenv.config();
 
 const app: Application = express();
 
-// ✅ CORS Options
 const corsOptions = {
   origin: process.env.FRONTEND_URL,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -18,11 +17,10 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 
-// ✅ Middleware
-app.use(express.json()); // ✅ body parsing
-app.use(express.urlencoded({ extended: true })); // ✅ for form data
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors(corsOptions)); // ✅ CORS setup
+app.use(cors(corsOptions));
 
 // ✅ Route mounting
 app.use("/api", authRoutes);

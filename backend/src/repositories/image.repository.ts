@@ -19,6 +19,26 @@ export class ImageRepository implements IImageRepository {
 
     return image;
   }
+  async findByTitles(titles: string[], userId: string): Promise<IImage[]> {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    return imageModel.find({
+      title: { $in: titles },
+      userId: userObjectId,
+    });
+  }
+
+  async createImages(data: CreateImageInput[]): Promise<IImage[]> {
+    const images = await ImageModel.insertMany(data);
+
+    // Add all imageIds to UserImageList
+    await UserImageList.findOneAndUpdate(
+      { userId: data[0].userId },
+      { $addToSet: { imageIds: { $each: images.map((img) => img._id) } } },
+      { upsert: true, new: true }
+    );
+
+    return images.map((img) => img.toObject());
+  }
   async findByTitle(title: string, userId: string): Promise<boolean> {
     const userObjectId = new mongoose.Types.ObjectId(userId);
     const image = await imageModel.findOne({ title, userId: userObjectId });

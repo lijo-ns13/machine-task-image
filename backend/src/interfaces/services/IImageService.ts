@@ -1,6 +1,8 @@
 import { CreateImageInput, ImageDTO } from "../../dtos/image.schema";
 
 export interface IImageService {
+  createImages(data: CreateImageInput[]): Promise<ImageDTO[]>;
+  checkDuplicateTitles(titles: string[], userId: string): Promise<string[]>;
   createImage(data: CreateImageInput): Promise<ImageDTO>;
   getImagesInUserOrderPaginated(
     userId: string,

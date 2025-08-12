@@ -14,6 +14,53 @@ export class ImageController implements IImageController {
     @inject(TYPES.ImageService) private imageService: IImageService,
     @inject(TYPES.MediaService) private mediaService: IMediaService
   ) {}
+  async createImages(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = req.body;
+      const titles: string[] = JSON.parse(req.body.titles);
+      const files = req.files as Express.Multer.File[];
+
+      if (!files?.length) {
+        res.status(400).json({ success: false, message: "No images provided" });
+        return;
+      }
+
+      if (files.length !== titles.length) {
+        res.status(400).json({
+          success: false,
+          message: "Files count and titles count mismatch",
+        });
+        return;
+      }
+
+      const s3Keys = await Promise.all(
+        files.map((file) => this.mediaService.uploadSingleMedia(file))
+      );
+
+      const imageInputs = titles.map((title, i) => ({
+        title,
+        userId,
+        s3key: s3Keys[i],
+      }));
+
+      const imageDTOs = await this.imageService.createImages(imageInputs);
+
+      res.status(HTTP_STATUS_CODES.CREATED).json({
+        success: true,
+        message: "Images uploaded successfully",
+        data: imageDTOs,
+      });
+    } catch (error: any) {
+      if (error.message?.includes("already exist")) {
+        res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      } else {
+        handleControllerError(error, res, "create-images");
+      }
+    }
+  }
 
   async createImage(req: Request, res: Response): Promise<void> {
     console.log("mediaserv", this.mediaService);

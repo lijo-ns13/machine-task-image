@@ -21,6 +21,11 @@ router.post(
   uploadMedia,
   imageController.createImage.bind(imageController)
 );
+router.post(
+  "/images",
+  uploadMedia,
+  imageController.createImages.bind(imageController)
+);
 router.get(
   "/image/user/:userId",
   imageController.getUserImages.bind(imageController)

@@ -19,6 +19,34 @@ export class ImageService implements IImageService {
     private userImageListRepository: IUserImageListRepository,
     @inject(TYPES.MediaService) private mediaService: IMediaService
   ) {}
+  async checkDuplicateTitles(
+    titles: string[],
+    userId: string
+  ): Promise<string[]> {
+    const existingImages = await this.imageRepository.findByTitles(
+      titles,
+      userId
+    );
+    return existingImages.map((img) => img.title);
+  }
+
+  async createImages(data: CreateImageInput[]): Promise<ImageDTO[]> {
+    const titles = data.map((d) => d.title);
+    const duplicateTitles = await this.checkDuplicateTitles(
+      titles,
+      data[0].userId
+    );
+
+    if (duplicateTitles.length > 0) {
+      const duplicatesStr = duplicateTitles.join(", ");
+      throw new Error(`The following titles already exist: ${duplicatesStr}`);
+    }
+
+    const images = await this.imageRepository.createImages(data);
+    return Promise.all(
+      images.map((img) => ImageMapper.toDTO(img, this.mediaService))
+    );
+  }
 
   async createImage(data: CreateImageInput): Promise<ImageDTO> {
     const isTitleAlreadyExists = await this.imageRepository.findByTitle(
