@@ -34,7 +34,11 @@ export const SignUpUser = async (data: {
 };
 export const Logout = async () => {
   try {
-    const response = await axios.post(`${baseUrl}/api/auth/logout`);
+    const response = await axios.post(
+      `${baseUrl}/api/auth/logout`,
+      {},
+      { withCredentials: true }
+    );
     return response.data;
   } catch (error) {
     throw handleApiError(error, "authlogut");

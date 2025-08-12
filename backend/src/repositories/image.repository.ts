@@ -26,6 +26,19 @@ export class ImageRepository implements IImageRepository {
       userId: userObjectId,
     });
   }
+  async findByTitleExceptId(
+    title: string,
+    userId: string,
+    excludeImageId: string
+  ): Promise<boolean> {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const image = await imageModel.findOne({
+      title,
+      userId: userObjectId,
+      _id: { $ne: excludeImageId }, // exclude current image
+    });
+    return !!image;
+  }
 
   async createImages(data: CreateImageInput[]): Promise<IImage[]> {
     const images = await ImageModel.insertMany(data);

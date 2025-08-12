@@ -94,9 +94,10 @@ export class ImageService implements IImageService {
     data: { title: string },
     userId: string
   ): Promise<ImageDTO> {
-    const isTitleAlreadyExists = await this.imageRepository.findByTitle(
+    const isTitleAlreadyExists = await this.imageRepository.findByTitleExceptId(
       data.title,
-      userId
+      userId,
+      imageId
     );
     if (isTitleAlreadyExists) {
       throw new Error("Title already exists");

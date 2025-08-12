@@ -5,7 +5,7 @@ import type { ImageDTO } from "../services/imgService";
 
 interface AddImageSectionProps {
   userId: string;
-  onImageUploaded: (newImage: ImageDTO) => void;
+  onImageUploaded: (newImage: ImageDTO[]) => void;
 }
 
 const AddImageSection: React.FC<AddImageSectionProps> = ({
@@ -52,16 +52,16 @@ const AddImageSection: React.FC<AddImageSectionProps> = ({
       />
 
       <div className="mt-6">
-        {selectedFiles.length === 1 && userId && (
+        {/* {selectedFiles.length === 1 && userId && (
           <SingleImageUploader
             file={selectedFiles[0]}
             userId={userId}
             onClose={clearSelection}
             onUploaded={onImageUploaded}
           />
-        )}
+        )} */}
 
-        {selectedFiles.length > 1 && userId && (
+        {selectedFiles.length > 0 && userId && (
           <BulkImageUploader
             files={selectedFiles}
             userId={userId}

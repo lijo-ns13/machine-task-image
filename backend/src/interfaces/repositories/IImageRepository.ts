@@ -9,4 +9,9 @@ export interface IImageRepository {
   getImageById(imageId: string): Promise<IImage | null>;
   deleteImage(imageId: string): Promise<void>;
   findByTitle(title: string, userId: string): Promise<boolean>;
+  findByTitleExceptId(
+    title: string,
+    userId: string,
+    excludeImageId: string
+  ): Promise<boolean>;
 }

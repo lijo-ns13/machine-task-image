@@ -19,7 +19,7 @@ import {
 import {
   arrayMove,
   SortableContext,
-  verticalListSortingStrategy,
+  rectSortingStrategy,
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -52,10 +52,10 @@ function HomePage() {
         id: String(img.id),
       }));
 
-      setImages(() => [...cleanedImages]);
-      // setImages((prev) => [...prev, ...res.images]);
+      setImages((prev) =>
+        pageToLoad === 1 ? cleanedImages : [...prev, ...cleanedImages]
+      );
 
-      // Compute hasMore based on pagination
       const { page, totalPages } = res.pagination;
       setHasMore(page < totalPages);
 
@@ -64,15 +64,18 @@ function HomePage() {
       setLoadingMore(false);
     }
   };
+
   async function handleDelete(imageId: string) {
+    console.log("handledelte debund");
     try {
       await deleteImage(imageId);
-      setImages(images.filter((image: ImageDTO) => image.id != imageId));
+      setImages((prev) => prev.filter((image) => image.id !== imageId));
       toast.success("Image deleted successfully");
     } catch {
       toast.error("Failed to delete");
     }
   }
+
   function handleUpdate(image: ImageDTO) {
     setEditingImage(image);
   }
@@ -80,31 +83,41 @@ function HomePage() {
   async function saveUpdatedTitle(newTitle: string) {
     if (!editingImage) return;
 
+    const trimmedTitle = newTitle.trim();
+
+    if (!trimmedTitle) {
+      toast.error("Title cannot be empty or just spaces");
+      return;
+    }
+
+    // Optional: minimum length check
+    if (trimmedTitle.length < 3) {
+      toast.error("Title must be at least 3 characters");
+      return;
+    }
+
     try {
       if (!userId) {
-        toast.error("userid not found");
+        toast.error("User ID not found");
         return;
       }
-      await updateImage(editingImage.id, newTitle, userId);
-
+      await updateImage(editingImage.id, trimmedTitle, userId);
       setImages((prev) =>
         prev.map((img) =>
-          img.id === editingImage.id ? { ...img, title: newTitle } : img
+          img.id === editingImage.id ? { ...img, title: trimmedTitle } : img
         )
       );
       toast.success("Image updated successfully");
       setEditingImage(null);
     } catch {
-      toast.error("Failed to update image");
+      toast.error("Title already exists");
     }
   }
 
-  // Initial load
   useEffect(() => {
     if (userId) fetchImages(1);
   }, [userId]);
 
-  // Scroll listener for infinite scroll
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -116,7 +129,6 @@ function HomePage() {
         fetchImages(page + 1);
       }
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [page, hasMore, loadingMore]);
@@ -137,10 +149,10 @@ function HomePage() {
   const handleSaveOrder = async () => {
     if (!userId) return;
     const newOrderIds = images.map((img) => img.id);
-    console.log(newOrderIds, "neworderid");
     await updateImageOrder(userId, newOrderIds);
     setHasChanges(false);
   };
+
   function UpdateImageModal({
     image,
     onClose,
@@ -153,31 +165,33 @@ function HomePage() {
     const [title, setTitle] = useState(image.title);
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-          <h2 className="text-xl font-semibold mb-4">Update Image</h2>
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+          <h2 className="text-2xl font-semibold mb-6 text-gray-900">
+            Update Image
+          </h2>
           <img
             src={image.s3key}
             alt={image.title}
-            className="w-full h-64 object-cover rounded mb-4"
+            className="w-full h-64 object-cover rounded-lg mb-6"
           />
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="border rounded px-3 py-2 w-full mb-4"
+            className="border border-gray-300 rounded-md px-4 py-2 w-full mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter new title"
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+              className="px-5 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
             >
               Cancel
             </button>
             <button
               onClick={() => onSave(title)}
-              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+              className="px-5 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
             >
               Save
             </button>
@@ -188,77 +202,125 @@ function HomePage() {
   }
 
   function SortableImage({ image }: { image: ImageDTO }) {
-    const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id: image.id });
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: image.id });
 
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
-      touchAction: "manipulation", // Prevents scrolling during drag
+      cursor: isDragging ? "grabbing" : "grab",
+      boxShadow: isDragging
+        ? "0 10px 20px rgba(0,0,0,0.25)"
+        : "0 4px 8px rgba(0,0,0,0.1)",
+      zIndex: isDragging ? 50 : "auto",
     };
 
     return (
       <div
         ref={setNodeRef}
         style={style}
-        {...attributes}
-        className="border p-4 rounded shadow mb-4 flex items-center gap-6 bg-white cursor-grab"
+        // <-- Remove {...attributes} and {...listeners} here!
+        className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow flex flex-col select-none relative"
       >
-        <div {...listeners} className="cursor-grab">
-          {/* Drag handle */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-gray-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className="relative w-full h-48 sm:h-56 md:h-48 overflow-hidden">
+          <img
+            src={image.s3key}
+            alt={image.title}
+            className="object-cover w-full h-full"
+            draggable={false}
+          />
+          {/* Drag handle - only this part is draggable */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="absolute top-2 right-2 cursor-grab p-2 bg-white rounded shadow"
+            aria-label="Drag handle"
+            onClick={(e) => e.stopPropagation()} // Prevent drag interference
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 10h16M4 14h16"
-            />
-          </svg>
+            {/* A simple icon for drag handle */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-gray-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 8h16M4 16h16"
+              />
+            </svg>
+          </div>
         </div>
 
-        <img
-          src={image.s3key}
-          alt={image.title}
-          className="w-32 h-32 object-cover rounded-lg border"
-        />
-        <span className="font-medium text-lg text-gray-800">{image.title}</span>
-        <button onClick={() => handleDelete(image.id)}>delete</button>
-        <button
-          onClick={() => handleUpdate(image)}
-          className="px-3 py-1 bg-yellow-500 text-white rounded"
-        >
-          Update
-        </button>
+        <div className="p-4 flex flex-col flex-grow">
+          <h3
+            className="text-lg font-semibold text-gray-900 truncate"
+            title={image.title}
+          >
+            {image.title}
+          </h3>
+          <div className="mt-auto flex justify-between items-center pt-3">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("clicked delete button for", image.id);
+                handleDelete(image.id);
+              }}
+              className="text-red-600 hover:text-red-800 font-semibold transition"
+              aria-label={`Delete ${image.title}`}
+            >
+              Delete
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleUpdate(image);
+              }}
+              className="px-3 py-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-semibold rounded-md transition"
+              aria-label={`Update ${image.title}`}
+            >
+              Update
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="p-4 max-w-4xl mx-auto">
+      <main className="max-w-6xl mx-auto p-6">
         {userId && (
           <AddImageSection
             userId={userId}
-            onImageUploaded={(newImage) =>
-              setImages((prev) => [newImage, ...prev])
+            onImageUploaded={(newImages) =>
+              setImages((prev) => [...newImages, ...prev])
             }
           />
         )}
+
         {images.length > 0 && (
-          <div className="mt-10">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold">Reorder Your Images</h2>
+          <section className="mt-12">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+              <h2 className="text-3xl font-extrabold text-gray-900">
+                Your Image Gallery
+              </h2>
               {hasChanges && (
                 <button
                   onClick={handleSaveOrder}
-                  className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700"
+                  className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2 rounded-md shadow-lg transition"
                 >
                   ✅ Save Order
                 </button>
@@ -271,24 +333,27 @@ function HomePage() {
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                key={images.map((img) => img.id).join("-")} // Force remount on reorder
+                key={images.map((img) => img.id).join("-")}
                 items={images.map((img) => img.id)}
-                strategy={verticalListSortingStrategy}
+                strategy={rectSortingStrategy}
               >
-                {images.map((img) => (
-                  <SortableImage key={img.id} image={img} />
-                ))}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                  {images.map((img) => (
+                    <SortableImage key={img.id} image={img} />
+                  ))}
+                </div>
               </SortableContext>
             </DndContext>
 
             {loadingMore && (
-              <p className="text-center text-gray-500 mt-4">
+              <p className="text-center text-gray-500 mt-8">
                 Loading more images...
               </p>
             )}
-          </div>
+          </section>
         )}
-      </div>
+      </main>
+
       {editingImage && (
         <UpdateImageModal
           image={editingImage}

@@ -10,6 +10,7 @@ const storage = multer.memoryStorage(); // Suitable for cloud uploads like S3
 const upload = multer({ storage });
 
 export const uploadMedia = upload.single("media"); // 'media' should match your form field name
+export const uploadMultipleMedia = upload.array("media");
 const authMiddleware = container.get<IAuthMiddleware>(TYPES.AuthMiddleware);
 const imageController = container.get<IImageController>(TYPES.ImageController);
 
@@ -23,7 +24,7 @@ router.post(
 );
 router.post(
   "/images",
-  uploadMedia,
+  uploadMultipleMedia,
   imageController.createImages.bind(imageController)
 );
 router.get(
