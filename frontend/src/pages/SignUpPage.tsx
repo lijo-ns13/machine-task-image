@@ -98,9 +98,11 @@ const SignUpPage = () => {
       console.error("Signup error:", error);
 
       // If your backend errors come inside error.response.data or similar, adapt here:
-      if (error?.response?.data?.errors) {
-        setErrors(error.response.data.errors);
-        toast.error("Please fix the errors in the form");
+      if (error?.response?.data?.error) {
+        setErrors(error.response.data.error);
+        toast.error(
+          error.response.data.error || "Please fix the errors in the form"
+        );
       } else {
         toast.error("Error occurred during signup");
       }
