@@ -1,9 +1,7 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../hooks/useAppSelector";
 import Navbar from "../components/Navbar";
-import BulkImageUploader from "../components/BulkImageUploader";
-import SingleImageUploader from "../components/SingleImageUploader";
 import {
   deleteImage,
   getUserImages,
@@ -26,13 +24,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "react-toastify";
+import AddImageSection from "../components/AddImageSecion";
 
 function HomePage() {
   const navigate = useNavigate();
   const { isAuthenticated, id: userId } = useAppSelector((state) => state.auth);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [images, setImages] = useState<ImageDTO[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [page, setPage] = useState(1);
@@ -41,8 +37,10 @@ function HomePage() {
   const [editingImage, setEditingImage] = useState<ImageDTO | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) navigate("/login");
-  }, [isAuthenticated]);
+    if (isAuthenticated && window.location.pathname === "/login") {
+      navigate("/home", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const fetchImages = async (pageToLoad = 1) => {
     if (!userId || loadingMore || !hasMore) return;
@@ -122,22 +120,6 @@ function HomePage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [page, hasMore, loadingMore]);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []).filter((file) =>
-      file.type.startsWith("image/")
-    );
-    setSelectedFiles(files);
-  };
-
-  const handleAddImageClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const clearSelection = () => {
-    setSelectedFiles([]);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -261,48 +243,14 @@ function HomePage() {
     <div>
       <Navbar />
       <div className="p-4 max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <button
-            onClick={handleAddImageClick}
-            className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
-          >
-            + Add Image
-          </button>
-        </div>
-
-        <input
-          type="file"
-          ref={fileInputRef}
-          multiple
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileSelect}
-        />
-
-        <div className="mt-6">
-          {selectedFiles.length === 1 && userId && (
-            <SingleImageUploader
-              file={selectedFiles[0]}
-              userId={userId}
-              onClose={clearSelection}
-              onUploaded={(newImage) =>
-                setImages((prev) => [newImage, ...prev])
-              }
-            />
-          )}
-
-          {selectedFiles.length > 1 && userId && (
-            <BulkImageUploader
-              files={selectedFiles}
-              userId={userId}
-              onClose={clearSelection}
-              onUploaded={(newImage) =>
-                setImages((prev) => [newImage, ...prev])
-              }
-            />
-          )}
-        </div>
-
+        {userId && (
+          <AddImageSection
+            userId={userId}
+            onImageUploaded={(newImage) =>
+              setImages((prev) => [newImage, ...prev])
+            }
+          />
+        )}
         {images.length > 0 && (
           <div className="mt-10">
             <div className="flex justify-between items-center mb-4">

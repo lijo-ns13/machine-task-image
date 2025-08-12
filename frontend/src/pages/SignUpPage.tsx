@@ -22,7 +22,7 @@ const SignUpPage = () => {
     password: "",
     confirmPassword: "",
   });
-
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const validate = (data: FormData): FormErrors => {
@@ -75,7 +75,7 @@ const SignUpPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    if (loading) return;
     const validationErrors = validate(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -83,6 +83,7 @@ const SignUpPage = () => {
     }
 
     try {
+      setLoading(true);
       const response = await SignUpUser(formData);
 
       // Assume backend returns { success: boolean, errors?: Record<string, string> }
@@ -93,19 +94,22 @@ const SignUpPage = () => {
       }
 
       toast.success("Signup successful");
-      navigate("/signin");
+      navigate("/signin", { replace: true });
     } catch (error: any) {
-      console.error("Signup error:", error);
+      console.log("Signup error:", error);
 
       // If your backend errors come inside error.response.data or similar, adapt here:
-      if (error?.response?.data?.error) {
-        setErrors(error.response.data.error);
-        toast.error(
-          error.response.data.error || "Please fix the errors in the form"
-        );
+      if (error?.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+        toast.error("Please fix the errors in the form");
+      } else if (error?.message) {
+        console.log("erroru", error);
+        toast.error(error?.message || "Email Already Exists");
       } else {
         toast.error("Error occurred during signup");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -216,7 +220,7 @@ const SignUpPage = () => {
           type="submit"
           className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
         >
-          Sign Up
+          {loading ? "Processing.." : "SignUp"}
         </button>
 
         <div className="text-center">

@@ -69,6 +69,27 @@ export const updateImageOrder = async (
     throw handleApiError(error, "update-image-order");
   }
 };
+export const createMultipleImages = async (
+  formData: FormData
+): Promise<ImageDTO[]> => {
+  try {
+    const response = await userAxios.post(
+      `${baseUrl}/api/image/multiple`,
+      formData,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return response.data.data;
+  } catch (error) {
+    throw handleApiError(error, "create-multiple-images");
+  }
+};
+
 export const updateImage = async (
   imageId: string,
   title: string,

@@ -14,6 +14,7 @@ const SignInPage = () => {
     {}
   );
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -23,6 +24,8 @@ const SignInPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
     const newErrors: typeof errors = {};
 
     if (!formData.email.trim()) newErrors.email = "Email is required";
@@ -34,13 +37,16 @@ const SignInPage = () => {
     }
 
     try {
+      setLoading(true);
       const res = await SignInUser(formData.email, formData.password);
       const { id, name, email } = res.user;
       dispatch(login({ id, name, email }));
       toast.success("Signed in successfully!");
-      navigate("/home");
+      navigate("/home", { replace: true });
     } catch (error: any) {
       toast.error(error?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -99,7 +105,7 @@ const SignInPage = () => {
           type="submit"
           className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
         >
-          Sign In
+          {loading ? "processing" : "signin"}
         </button>
         <div className="text-center">
           <span className="text-sm text-gray-600">Don't have an account? </span>
