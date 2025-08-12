@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import SingleImageUploader from "./SingleImageUploader";
+
 import BulkImageUploader from "./BulkImageUploader";
 import type { ImageDTO } from "../services/imgService";
 
