@@ -37,7 +37,12 @@ router.put(
 );
 router.patch(
   "/image/:imageId",
+  uploadMedia,
   imageController.updateImage.bind(imageController)
+);
+router.patch(
+  "/changepassword",
+  imageController.changePassword.bind(imageController)
 );
 router.delete(
   "/image/:imageId",

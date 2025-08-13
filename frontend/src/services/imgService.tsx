@@ -89,22 +89,27 @@ export const createMultipleImages = async (
     throw handleApiError(error, "create-multiple-images");
   }
 };
-
 export const updateImage = async (
   imageId: string,
   title: string,
-  userId: string
+  file?: File
 ): Promise<void> => {
   try {
-    await userAxios.patch(
-      `${baseUrl}/api/image/${imageId}`,
-      { title, userId },
-      { withCredentials: true }
-    );
+    const formData = new FormData();
+    formData.append("title", title);
+    if (file) {
+      formData.append("media", file); // must match multer field name
+    }
+
+    await userAxios.patch(`${baseUrl}/api/image/${imageId}`, formData, {
+      withCredentials: true,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
   } catch (error) {
     throw handleApiError(error, "update image");
   }
 };
+
 export const deleteImage = async (imageId: string): Promise<void> => {
   try {
     await userAxios.delete(`${baseUrl}/api/image/${imageId}`, {
@@ -114,3 +119,19 @@ export const deleteImage = async (imageId: string): Promise<void> => {
     throw handleApiError(error, "delete image");
   }
 };
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  userId: string
+) {
+  try {
+    const res = await userAxios.patch(`${baseUrl}/api/changepassword`, {
+      currentPassword,
+      newPassword,
+      userId,
+    });
+    return res.data.data;
+  } catch (error) {
+    throw handleApiError(error, "change password");
+  }
+}

@@ -7,6 +7,7 @@ import { ImageMapper } from "../mapping/image.mapper";
 import { IImageRepository } from "../interfaces/repositories/IImageRepository";
 import { IUserImageListRepository } from "../interfaces/repositories/IUserImageList.repository";
 import { IMediaService } from "../interfaces/services/IMediaService";
+import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 
 @injectable()
 export class ImageService implements IImageService {
@@ -17,7 +18,8 @@ export class ImageService implements IImageService {
     private imageRepository: IImageRepository,
     @inject(TYPES.UserImageListRepository)
     private userImageListRepository: IUserImageListRepository,
-    @inject(TYPES.MediaService) private mediaService: IMediaService
+    @inject(TYPES.MediaService) private mediaService: IMediaService,
+    @inject(TYPES.UserRepository) private _userRepo: IUserRepository
   ) {}
   async checkDuplicateTitles(
     titles: string[],
@@ -92,7 +94,8 @@ export class ImageService implements IImageService {
   async updateImage(
     imageId: string,
     data: { title: string },
-    userId: string
+    userId: string,
+    s3key?: string
   ): Promise<ImageDTO> {
     const isTitleAlreadyExists = await this.imageRepository.findByTitleExceptId(
       data.title,
@@ -102,7 +105,11 @@ export class ImageService implements IImageService {
     if (isTitleAlreadyExists) {
       throw new Error("Title already exists");
     }
-    const updated = await this.imageRepository.updateImage(imageId, data);
+    const updated = await this.imageRepository.updateImage(
+      imageId,
+      data,
+      s3key
+    );
     return ImageMapper.toDTO(updated, this.mediaService);
   }
 
@@ -116,5 +123,24 @@ export class ImageService implements IImageService {
       image.userId.toString(),
       imageId
     );
+  }
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    const user = await this._userRepo.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    console.log("user", user);
+    const isMatch = await user.comparePassword(currentPassword);
+    console.log("isMatch", isMatch);
+    if (!isMatch) {
+      throw new Error("Current password is incorrect");
+    }
+
+    user.password = newPassword;
+    await user.save();
   }
 }

@@ -57,12 +57,22 @@ export class ImageRepository implements IImageRepository {
     const image = await imageModel.findOne({ title, userId: userObjectId });
     return !!image;
   }
-  async updateImage(imageId: string, data: { title: string }): Promise<IImage> {
+  async updateImage(
+    imageId: string,
+    data: { title: string },
+    s3key?: string
+  ): Promise<IImage> {
+    const updateData: Record<string, unknown> = { title: data.title };
+    if (s3key) {
+      updateData.s3key = s3key;
+    }
+
     const updated = await ImageModel.findByIdAndUpdate(
       imageId,
-      { $set: data },
+      { $set: updateData },
       { new: true }
     );
+
     if (!updated) throw new Error("Image not found");
     return updated;
   }

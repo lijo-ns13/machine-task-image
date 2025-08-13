@@ -7,6 +7,7 @@ import { IImageController } from "../interfaces/controllers/IImageController";
 import { TYPES } from "../di/types";
 import { IImageService } from "../interfaces/services/IImageService";
 import { IMediaService } from "../interfaces/services/IMediaService";
+import { AuthenticatedUser } from "../middlewares/auth.middlewares";
 
 @injectable()
 export class ImageController implements IImageController {
@@ -148,8 +149,9 @@ export class ImageController implements IImageController {
   }
   async updateImage(req: Request, res: Response): Promise<void> {
     try {
-      const imageId = req.params.imageId;
+      const { imageId } = req.params;
       const { title, userId } = req.body;
+      const file = req.file;
 
       if (!title || typeof title !== "string") {
         res.status(400).json({
@@ -159,10 +161,16 @@ export class ImageController implements IImageController {
         return;
       }
 
+      let s3key: string | undefined;
+      if (file) {
+        s3key = await this.mediaService.uploadSingleMedia(file);
+      }
+
       const updated = await this.imageService.updateImage(
         imageId,
         { title },
-        userId
+        userId,
+        s3key
       );
 
       res.status(200).json({
@@ -174,6 +182,7 @@ export class ImageController implements IImageController {
       handleControllerError(error, res, "update-image");
     }
   }
+
   async deleteImage(req: Request, res: Response): Promise<void> {
     try {
       const imageId = req.params.imageId;
@@ -186,6 +195,40 @@ export class ImageController implements IImageController {
       });
     } catch (error) {
       handleControllerError(error, res, "delete-image");
+    }
+  }
+  async changePassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { currentPassword, newPassword, userId } = req.body;
+      // const userId = (req.user as AuthenticatedUser)?.id;
+      if (!currentPassword || !newPassword) {
+        res.status(400).json({
+          success: false,
+          message: "Both currentPassword and newPassword are required",
+        });
+        return;
+      }
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
+
+      await this.imageService.changePassword(
+        userId,
+        currentPassword,
+        newPassword
+      );
+
+      res.json({
+        success: true,
+        message: "Password updated successfully",
+      });
+    } catch (error) {
+      handleControllerError(error, res, "changepassword");
     }
   }
 }

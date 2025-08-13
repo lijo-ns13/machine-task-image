@@ -7,4 +7,5 @@ export interface IImageController {
   updateUserImageOrder(req: Request, res: Response): Promise<void>;
   updateImage(req: Request, res: Response): Promise<void>;
   deleteImage(req: Request, res: Response): Promise<void>;
+  changePassword(req: Request, res: Response): Promise<void>;
 }

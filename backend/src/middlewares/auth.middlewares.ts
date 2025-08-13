@@ -11,7 +11,7 @@ import {
 } from "../utils/jwt.service";
 import { IAuthMiddleware } from "../interfaces/middlewares/IAuthMiddleware";
 
-interface AuthenticatedUser {
+export interface AuthenticatedUser {
   id: string;
   email: string;
 }

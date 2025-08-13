@@ -25,6 +25,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "react-toastify";
 import AddImageSection from "../components/AddImageSecion";
+import ChangePasswordModal from "../components/ChangePasswordModal";
 
 function HomePage() {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ function HomePage() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [editingImage, setEditingImage] = useState<ImageDTO | null>(null);
+  const [updateLoading, setUpdatingLoading] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && window.location.pathname === "/signin") {
@@ -80,37 +83,54 @@ function HomePage() {
     setEditingImage(image);
   }
 
-  async function saveUpdatedTitle(newTitle: string) {
+  async function saveUpdatedTitle(newTitle: string, newFile?: File) {
     if (!editingImage) return;
 
     const trimmedTitle = newTitle.trim();
-
     if (!trimmedTitle) {
       toast.error("Title cannot be empty or just spaces");
       return;
     }
-
-    // Optional: minimum length check
     if (trimmedTitle.length < 3) {
       toast.error("Title must be at least 3 characters");
       return;
     }
 
     try {
+      setUpdatingLoading(true);
       if (!userId) {
         toast.error("User ID not found");
         return;
       }
-      await updateImage(editingImage.id, trimmedTitle, userId);
+
+      const formData = new FormData();
+      formData.append("title", trimmedTitle);
+      formData.append("userId", userId);
+      if (newFile) {
+        formData.append("file", newFile);
+      }
+
+      await updateImage(editingImage.id, trimmedTitle, newFile);
+      // backend should handle file + title
+
       setImages((prev) =>
         prev.map((img) =>
-          img.id === editingImage.id ? { ...img, title: trimmedTitle } : img
+          img.id === editingImage.id
+            ? {
+                ...img,
+                title: trimmedTitle,
+                s3key: newFile ? URL.createObjectURL(newFile) : img.s3key,
+              }
+            : img
         )
       );
+
       toast.success("Image updated successfully");
       setEditingImage(null);
     } catch {
-      toast.error("Title already exists");
+      toast.error("Failed to update image");
+    } finally {
+      setUpdatingLoading(false);
     }
   }
 
@@ -160,9 +180,10 @@ function HomePage() {
   }: {
     image: ImageDTO;
     onClose: () => void;
-    onSave: (newTitle: string) => void;
+    onSave: (newTitle: string, newFile?: File) => void;
   }) {
     const [title, setTitle] = useState(image.title);
+    const [file, setFile] = useState<File | undefined>(undefined);
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
@@ -170,18 +191,28 @@ function HomePage() {
           <h2 className="text-2xl font-semibold mb-6 text-gray-900">
             Update Image
           </h2>
+
           <img
-            src={image.s3key}
+            src={file ? URL.createObjectURL(file) : image.s3key}
             alt={image.title}
             className="w-full h-64 object-cover rounded-lg mb-6"
           />
+
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="border border-gray-300 rounded-md px-4 py-2 w-full mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-md px-4 py-2 w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter new title"
           />
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files?.[0])}
+            className="mb-6"
+          />
+
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
@@ -190,10 +221,10 @@ function HomePage() {
               Cancel
             </button>
             <button
-              onClick={() => onSave(title)}
+              onClick={() => onSave(title, file)}
               className="px-5 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
             >
-              Save
+              {updateLoading ? "updating.." : "save"}
             </button>
           </div>
         </div>
@@ -301,6 +332,15 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+      <div className="max-w-6xl mx-auto p-6 flex justify-end">
+        <button
+          onClick={() => setShowChangePassword(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md shadow"
+        >
+          Change Password
+        </button>
+      </div>
+
       <main className="max-w-6xl mx-auto p-6">
         {userId && (
           <AddImageSection
@@ -360,6 +400,9 @@ function HomePage() {
           onClose={() => setEditingImage(null)}
           onSave={saveUpdatedTitle}
         />
+      )}
+      {showChangePassword && (
+        <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
       )}
     </div>
   );

@@ -31,6 +31,7 @@ export class CommonService implements ICommonService {
   constructor(
     @inject(TYPES.UserRepository) private _userRepo: IUserRepository
   ) {}
+
   async refreshAccessToken(refreshToken?: string) {
     if (!refreshToken) {
       throw { status: 401, message: "No refresh token provided" };

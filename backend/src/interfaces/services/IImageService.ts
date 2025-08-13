@@ -13,7 +13,13 @@ export interface IImageService {
   updateImage(
     imageId: string,
     data: { title: string },
-    userId: string
+    userId: string,
+    s3key?: string
   ): Promise<ImageDTO>;
   deleteImage(imageId: string): Promise<void>;
+  changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void>;
 }
