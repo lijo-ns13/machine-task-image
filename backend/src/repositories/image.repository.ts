@@ -32,11 +32,14 @@ export class ImageRepository implements IImageRepository {
     excludeImageId: string
   ): Promise<boolean> {
     const userObjectId = new mongoose.Types.ObjectId(userId);
+    const excludeObjectId = new mongoose.Types.ObjectId(excludeImageId);
+    console.log("imageexluceId", excludeImageId, excludeObjectId, userObjectId);
     const image = await imageModel.findOne({
-      title,
+      title: { $regex: `^${title.trim()}$`, $options: "i" }, // case-insensitive, trimmed match
       userId: userObjectId,
-      _id: { $ne: excludeImageId }, // exclude current image
+      _id: { $ne: excludeObjectId },
     });
+
     return !!image;
   }
 

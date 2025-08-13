@@ -111,7 +111,7 @@ function HomePage() {
         formData.append("file", newFile);
       }
 
-      await updateImage(editingImage.id, trimmedTitle, newFile);
+      await updateImage(editingImage.id, trimmedTitle, userId, newFile);
       // backend should handle file + title
 
       setImages((prev) =>
@@ -128,8 +128,9 @@ function HomePage() {
 
       toast.success("Image updated successfully");
       setEditingImage(null);
-    } catch {
-      toast.error("Failed to update image");
+    } catch (error: any) {
+      console.log("error update", error);
+      toast.error(error.message || "Failed to update image");
     } finally {
       setUpdatingLoading(false);
     }
@@ -187,45 +188,63 @@ function HomePage() {
     const [file, setFile] = useState<File | undefined>(undefined);
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-        <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-          <h2 className="text-2xl font-semibold mb-6 text-gray-900">
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all scale-100">
+          {/* Title */}
+          <h2 className="text-2xl font-bold mb-6 text-gray-900 border-b pb-3">
             Update Image
           </h2>
 
-          <img
-            src={file ? URL.createObjectURL(file) : image.s3key}
-            alt={image.title}
-            className="w-full h-64 object-cover rounded-lg mb-6"
-          />
+          {/* Image Preview */}
+          <div className="overflow-hidden rounded-lg shadow-md mb-6">
+            <img
+              src={file ? URL.createObjectURL(file) : image.s3key}
+              alt={image.title}
+              className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
 
+          {/* Title Input */}
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Image Title
+          </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="border border-gray-300 rounded-md px-4 py-2 w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             placeholder="Enter new title"
           />
 
+          {/* File Input */}
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Choose New Image
+          </label>
           <input
             type="file"
             accept="image/*"
             onChange={(e) => setFile(e.target.files?.[0])}
-            className="mb-6"
+            className="mb-6 block w-full text-sm text-gray-500
+                 file:mr-4 file:py-2 file:px-4
+                 file:rounded-full file:border-0
+                 file:text-sm file:font-semibold
+                 file:bg-blue-50 file:text-blue-700
+                 hover:file:bg-blue-100 cursor-pointer"
           />
 
-          <div className="flex justify-end gap-3">
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
             <button
               onClick={onClose}
-              className="px-5 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+              className="px-5 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={() => onSave(title, file)}
-              className="px-5 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+              className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:scale-95 transition-transform"
             >
-              {updateLoading ? "updating.." : "save"}
+              {updateLoading ? "Updating..." : "Save"}
             </button>
           </div>
         </div>

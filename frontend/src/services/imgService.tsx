@@ -92,11 +92,13 @@ export const createMultipleImages = async (
 export const updateImage = async (
   imageId: string,
   title: string,
+  userId: string,
   file?: File
 ): Promise<void> => {
   try {
     const formData = new FormData();
     formData.append("title", title);
+    formData.append("userId", userId);
     if (file) {
       formData.append("media", file); // must match multer field name
     }
