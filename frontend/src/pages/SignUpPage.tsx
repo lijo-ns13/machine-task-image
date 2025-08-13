@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SignUpUser } from "../services/authService";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
+import { useAppSelector } from "../hooks/useAppSelector";
 
 type FormData = {
   name: string;
@@ -14,7 +15,13 @@ type FormData = {
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
 const SignUpPage = () => {
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const navigate = useNavigate();
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/home", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     phoneNumber: "",
