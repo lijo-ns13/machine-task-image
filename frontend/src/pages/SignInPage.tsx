@@ -1,14 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { SignInUser } from "../services/authService";
 import { useAppDispatch } from "../hooks/useAppDispatch";
 import { login } from "../store/slice/authSlice";
 import { Link, useNavigate } from "react-router-dom";
+import { useAppSelector } from "../hooks/useAppSelector";
 
 const SignInPage = () => {
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/home", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {}

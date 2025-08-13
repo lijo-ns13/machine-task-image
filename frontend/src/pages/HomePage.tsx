@@ -37,7 +37,7 @@ function HomePage() {
   const [editingImage, setEditingImage] = useState<ImageDTO | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated && window.location.pathname === "/login") {
+    if (isAuthenticated && window.location.pathname === "/signin") {
       navigate("/home", { replace: true });
     }
   }, [isAuthenticated, navigate]);
